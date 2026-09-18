@@ -79,10 +79,15 @@ export const DocumentWorkspace: React.FC<DocumentWorkspaceProps> = ({ data }) =>
       {/* Top Disclaimer Header */}
       <LegalDisclaimer variant="banner" />
 
+      {/* Screen Reader Announcement Live Region */}
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {sourceFoundBanner || ''}
+      </div>
+
       {/* Workspace Header */}
       <div className="bg-slate-900 border-b border-slate-800 px-6 py-3 flex items-center justify-between gap-4 shrink-0">
         <div className="flex items-center gap-3 overflow-hidden">
-          <div className="w-8 h-8 rounded-lg bg-amber-400/10 border border-amber-400/30 text-amber-400 flex items-center justify-center font-bold text-xs shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-amber-400/10 border border-amber-400/30 text-amber-400 flex items-center justify-center font-bold text-xs shrink-0" aria-label={`File format: ${doc.fileType}`}>
             {doc.fileType.toUpperCase()}
           </div>
           <div className="truncate">
@@ -96,9 +101,10 @@ export const DocumentWorkspace: React.FC<DocumentWorkspaceProps> = ({ data }) =>
         <div className="flex items-center gap-3">
           <Link
             href={`/compare?docA=${doc.id}`}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-amber-400 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-amber-400 transition-colors focus:ring-2 focus:ring-amber-400"
+            aria-label="Compare this document with another version"
           >
-            <GitCompare className="w-3.5 h-3.5" />
+            <GitCompare className="w-3.5 h-3.5" aria-hidden="true" />
             <span>Compare Version</span>
           </Link>
         </div>
@@ -108,7 +114,7 @@ export const DocumentWorkspace: React.FC<DocumentWorkspaceProps> = ({ data }) =>
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
 
         {/* LEFT PANEL: Document Navigation & Sections (Cols 1-3) */}
-        <div className="hidden lg:block lg:col-span-3 bg-slate-900 border-r border-slate-800 flex flex-col overflow-y-auto p-4 space-y-4">
+        <nav className="hidden lg:block lg:col-span-3 bg-slate-900 border-r border-slate-800 flex flex-col overflow-y-auto p-4 space-y-4" aria-label="Document Outline and Page Navigation">
           <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
             Document Outline & Pages
           </div>
@@ -127,12 +133,13 @@ export const DocumentWorkspace: React.FC<DocumentWorkspaceProps> = ({ data }) =>
                       ? 'bg-amber-400/15 border border-amber-400/40 text-amber-300'
                       : 'hover:bg-slate-800 text-slate-400 hover:text-slate-200'
                   }`}
+                  aria-label={`Jump to page ${pageNum}`}
                 >
                   <span className="flex items-center gap-2">
-                    <FileText className="w-3.5 h-3.5 text-slate-400" />
+                    <FileText className="w-3.5 h-3.5 text-slate-400" aria-hidden="true" />
                     <span>Page {pageNum}</span>
                   </span>
-                  <ChevronRight className="w-3 h-3 text-slate-600" />
+                  <ChevronRight className="w-3 h-3 text-slate-600" aria-hidden="true" />
                 </button>
               );
             })}
@@ -148,33 +155,35 @@ export const DocumentWorkspace: React.FC<DocumentWorkspaceProps> = ({ data }) =>
                   key={idx}
                   onClick={() => handleCitationClick(c.pageNumber, c.section, c.originalText)}
                   className="w-full text-left px-2.5 py-1.5 rounded hover:bg-slate-800/80 text-slate-400 hover:text-amber-300 truncate transition-colors block"
+                  aria-label={`Jump to clause: ${c.section || c.title}, Page ${c.pageNumber}`}
                 >
                   {c.section || c.title}
                 </button>
               ))}
             </div>
           </div>
-        </div>
+        </nav>
 
         {/* CENTER PANEL: Interactive Document Text Viewer (Cols 4-7) */}
-        <div className="lg:col-span-4 bg-slate-950 flex flex-col border-r border-slate-800 overflow-hidden relative">
+        <section className="lg:col-span-4 bg-slate-950 flex flex-col border-r border-slate-800 overflow-hidden relative" aria-label="Legal Document Viewer">
           {/* Magic Moment "Source Found" Banner Indicator */}
           {sourceFoundBanner && (
-            <div className="absolute top-14 left-1/2 -translate-x-1/2 z-30 bg-emerald-500 text-slate-950 px-4 py-1.5 rounded-full text-xs font-bold shadow-xl flex items-center gap-1.5 animate-bounce">
-              <CheckCircle2 className="w-4 h-4 fill-slate-950 text-emerald-500" />
+            <div className="absolute top-14 left-1/2 -translate-x-1/2 z-30 bg-emerald-500 text-slate-950 px-4 py-1.5 rounded-full text-xs font-bold shadow-xl flex items-center gap-1.5 animate-bounce" role="status">
+              <CheckCircle2 className="w-4 h-4 fill-slate-950 text-emerald-500" aria-hidden="true" />
               <span>{sourceFoundBanner}</span>
             </div>
           )}
 
           {/* Document Search Bar */}
           <div className="p-3 bg-slate-900/90 border-b border-slate-800 flex items-center gap-2">
-            <Search className="w-4 h-4 text-slate-400 shrink-0" />
+            <Search className="w-4 h-4 text-slate-400 shrink-0" aria-hidden="true" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search contract text (e.g. 'termination', 'payment')..."
               className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-amber-500"
+              aria-label="Search document text"
             />
           </div>
 
@@ -185,12 +194,13 @@ export const DocumentWorkspace: React.FC<DocumentWorkspaceProps> = ({ data }) =>
               const isTargeted = targetPage === pageNum;
 
               return (
-                <div
+                <article
                   id={`doc-page-${pageNum}`}
                   key={pageNum}
                   className={`doc-page-container rounded-xl p-6 text-slate-900 text-xs font-serif leading-relaxed relative transition-all ${
                     isTargeted ? 'ring-2 ring-amber-400 shadow-xl' : ''
                   }`}
+                  aria-label={`Document page ${pageNum}`}
                 >
                   {/* Page Badge */}
                   <div className="flex items-center justify-between border-b border-slate-200 pb-2 mb-4 font-sans text-[10px] text-slate-400 uppercase tracking-widest font-semibold">
@@ -215,16 +225,16 @@ export const DocumentWorkspace: React.FC<DocumentWorkspaceProps> = ({ data }) =>
                       );
                     })}
                   </div>
-                </div>
+                </article>
               );
             })}
           </div>
-        </div>
+        </section>
 
         {/* RIGHT PANEL: AI Intelligence Suite (Cols 8-12) */}
-        <div className="lg:col-span-5 bg-slate-900 flex flex-col overflow-hidden">
+        <section className="lg:col-span-5 bg-slate-900 flex flex-col overflow-hidden" aria-label="AI Document Intelligence Workspace">
           {/* Tabs Bar */}
-          <div className="flex items-center gap-1 px-3 pt-3 bg-slate-950 border-b border-slate-800 overflow-x-auto scrollbar-none">
+          <div className="flex items-center gap-1 px-3 pt-3 bg-slate-950 border-b border-slate-800 overflow-x-auto scrollbar-none" role="tablist" aria-label="Analysis categories">
             {tabs.map(t => {
               const Icon = t.icon;
               const isActive = activeTab === t.id;
@@ -232,14 +242,18 @@ export const DocumentWorkspace: React.FC<DocumentWorkspaceProps> = ({ data }) =>
               return (
                 <button
                   key={t.id}
+                  id={`tab-${t.id}`}
+                  role="tab"
+                  aria-selected={isActive}
+                  aria-controls={`panel-${t.id}`}
                   onClick={() => setActiveTab(t.id)}
-                  className={`flex items-center gap-1.5 px-3 py-2.5 rounded-t-lg text-xs font-semibold whitespace-nowrap border-t border-x transition-colors ${
+                  className={`flex items-center gap-1.5 px-3 py-2.5 rounded-t-lg text-xs font-semibold whitespace-nowrap border-t border-x transition-colors focus:outline-none focus:ring-2 focus:ring-amber-400 ${
                     isActive
                       ? 'bg-slate-900 text-white border-slate-800 text-amber-400'
                       : 'bg-slate-950 text-slate-400 hover:text-slate-200 border-transparent'
                   }`}
                 >
-                  <Icon className="w-3.5 h-3.5" />
+                  <Icon className="w-3.5 h-3.5" aria-hidden="true" />
                   <span>{t.label}</span>
                   {t.count !== undefined && (
                     <span className="px-1.5 py-0.2 rounded-full text-[10px] bg-slate-800 text-slate-300">
@@ -252,7 +266,13 @@ export const DocumentWorkspace: React.FC<DocumentWorkspaceProps> = ({ data }) =>
           </div>
 
           {/* Active Tab Panel Content */}
-          <div className="flex-1 overflow-y-auto p-5 bg-slate-900 text-slate-100">
+          <div
+            id={`panel-${activeTab}`}
+            role="tabpanel"
+            aria-labelledby={`tab-${activeTab}`}
+            className="flex-1 overflow-y-auto p-5 bg-slate-900 text-slate-100 focus:outline-none"
+            tabIndex={0}
+          >
             {activeTab === 'Overview' && (
               <OverviewTab overview={overview} pageCount={doc.pageCount} />
             )}
@@ -281,7 +301,7 @@ export const DocumentWorkspace: React.FC<DocumentWorkspaceProps> = ({ data }) =>
               <LawyerPrepTab lawyerPrep={lawyerPrep} onCitationClick={handleCitationClick} />
             )}
           </div>
-        </div>
+        </section>
 
       </div>
     </div>

@@ -11,13 +11,15 @@ interface SourceCardProps {
 
 export const SourceCard: React.FC<SourceCardProps> = ({ citation, onClick }) => {
   return (
-    <div
+    <button
+      type="button"
       onClick={onClick}
-      className="bg-slate-950 border border-amber-400/30 hover:border-amber-400 rounded-xl p-3.5 shadow-md transition-all cursor-pointer group space-y-2"
+      className="w-full text-left bg-slate-950 border border-amber-400/30 hover:border-amber-400 rounded-xl p-3.5 shadow-md transition-all cursor-pointer group space-y-2 focus:outline-none focus:ring-2 focus:ring-amber-400"
+      aria-label={`View source evidence on Page ${citation.pageNumber}${citation.section ? `, ${citation.section}` : ''}: "${citation.excerpt.slice(0, 60)}..."`}
     >
       <div className="flex items-center justify-between text-[11px]">
         <span className="font-bold text-amber-400 uppercase tracking-wider flex items-center gap-1">
-          <BookOpen className="w-3 h-3" /> SOURCE EVIDENCE
+          <BookOpen className="w-3 h-3" aria-hidden="true" /> SOURCE EVIDENCE
         </span>
         <span className="font-semibold text-slate-300 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
           Page {citation.pageNumber} {citation.section ? `&bull; ${citation.section}` : ''}
@@ -30,9 +32,9 @@ export const SourceCard: React.FC<SourceCardProps> = ({ citation, onClick }) => 
 
       <div className="flex items-center justify-end text-[11px] font-semibold text-amber-400 group-hover:underline pt-0.5">
         <span className="flex items-center gap-1">
-          View in document <ArrowUpRight className="w-3 h-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+          View in document <ArrowUpRight className="w-3 h-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" aria-hidden="true" />
         </span>
       </div>
-    </div>
+    </button>
   );
 };

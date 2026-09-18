@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { UploadCloud, FileText, CheckCircle2, AlertTriangle, Loader2, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -28,6 +28,16 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onSuc
     "Finding important clauses & terms...",
     "Building plain-English summary & checklist..."
   ];
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isOpen && !isProcessing) {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, isProcessing, onClose]);
 
   if (!isOpen) return null;
 
@@ -125,26 +135,33 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onSuc
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 max-w-lg w-full shadow-2xl relative overflow-hidden">
+    <div 
+      className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="upload-modal-title"
+      aria-describedby="upload-modal-desc"
+    >
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 max-w-lg w-full shadow-2xl relative overflow-hidden text-slate-900">
         {/* Close Button */}
         {!isProcessing && (
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1 rounded-lg"
+            className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 p-1 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500"
+            aria-label="Close document upload dialog"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5" aria-hidden="true" />
           </button>
         )}
 
-        <h3 className="text-xl font-bold text-slate-900 mb-1">Analyze Document</h3>
-        <p className="text-xs text-slate-500 mb-6">
+        <h3 id="upload-modal-title" className="text-xl font-bold text-slate-900 mb-1">Analyze Document</h3>
+        <p id="upload-modal-desc" className="text-xs text-slate-500 mb-6">
           Upload a contract, agreement, or legal policy (PDF, DOCX, TXT up to 10MB).
         </p>
 
         {error && (
-          <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 flex items-start gap-2">
-            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+          <div className="mb-4 p-3 rounded-lg bg-red-50 border border-red-200 text-xs text-red-700 flex items-start gap-2" role="alert">
+            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-red-600" aria-hidden="true" />
             <span>{error}</span>
           </div>
         )}
@@ -158,7 +175,16 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onSuc
               onDragOver={handleDrag}
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
-              className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors ${
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  fileInputRef.current?.click();
+                }
+              }}
+              tabIndex={0}
+              role="button"
+              aria-label="Choose file to upload or drag file here"
+              className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-amber-500 ${
                 dragActive
                   ? 'border-amber-500 bg-amber-50/50'
                   : file
@@ -172,12 +198,13 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onSuc
                 accept=".pdf,.docx,.txt"
                 onChange={handleFileChange}
                 className="hidden"
+                aria-label="Select legal document file (PDF, DOCX, or TXT)"
               />
 
               {file ? (
                 <div className="flex flex-col items-center">
                   <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mb-3">
-                    <FileText className="w-6 h-6" />
+                    <FileText className="w-6 h-6" aria-hidden="true" />
                   </div>
                   <span className="font-semibold text-slate-800 text-sm mb-1">{file.name}</span>
                   <span className="text-xs text-slate-500 mb-3">
@@ -189,7 +216,8 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onSuc
                       e.stopPropagation();
                       setFile(null);
                     }}
-                    className="text-xs text-slate-400 hover:text-red-500 underline"
+                    className="text-xs text-slate-400 hover:text-red-500 underline focus:outline-none"
+                    aria-label="Remove selected file"
                   >
                     Choose another file
                   </button>
@@ -197,7 +225,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onSuc
               ) : (
                 <div className="flex flex-col items-center">
                   <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center mb-3">
-                    <UploadCloud className="w-6 h-6" />
+                    <UploadCloud className="w-6 h-6" aria-hidden="true" />
                   </div>
                   <p className="font-semibold text-slate-800 text-sm mb-1">
                     Click to upload or drag and drop
@@ -212,7 +240,8 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onSuc
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100"
+                className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 focus:ring-2 focus:ring-slate-400"
+                aria-label="Cancel analysis and close modal"
               >
                 Cancel
               </button>
@@ -220,7 +249,8 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onSuc
                 type="button"
                 disabled={!file}
                 onClick={handleUpload}
-                className="px-5 py-2.5 rounded-lg text-xs font-semibold bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-md transition-colors"
+                className="px-5 py-2.5 rounded-lg text-xs font-semibold bg-slate-900 text-white hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed shadow-md transition-colors focus:ring-2 focus:ring-amber-500"
+                aria-label="Start legal document analysis"
               >
                 Start Analysis
               </button>
@@ -228,10 +258,10 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onSuc
           </div>
         ) : (
           /* Processing Progress State */
-          <div className="py-6">
+          <div className="py-6" aria-live="polite" aria-busy="true">
             <div className="flex items-center justify-center mb-6">
               <div className="w-16 h-16 rounded-full bg-amber-100 border-4 border-amber-200 flex items-center justify-center text-amber-600 relative">
-                <Loader2 className="w-8 h-8 animate-spin" />
+                <Loader2 className="w-8 h-8 animate-spin" aria-hidden="true" />
               </div>
             </div>
 
@@ -243,11 +273,11 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onSuc
                 return (
                   <div key={st} className="flex items-center gap-3">
                     {isDone ? (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
+                      <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" aria-hidden="true" />
                     ) : isCurrent ? (
-                      <Loader2 className="w-4 h-4 text-amber-500 animate-spin shrink-0" />
+                      <Loader2 className="w-4 h-4 text-amber-500 animate-spin shrink-0" aria-hidden="true" />
                     ) : (
-                      <div className="w-4 h-4 rounded-full border border-slate-300 shrink-0" />
+                      <div className="w-4 h-4 rounded-full border border-slate-300 shrink-0" aria-hidden="true" />
                     )}
                     <span
                       className={`text-xs ${
@@ -265,7 +295,7 @@ export const UploadModal: React.FC<UploadModalProps> = ({ isOpen, onClose, onSuc
               })}
             </div>
 
-            <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden">
+            <div className="w-full bg-slate-100 rounded-full h-2 overflow-hidden" role="progressbar" aria-valuenow={Math.round(((stepIndex + 1) / steps.length) * 100)} aria-valuemin={0} aria-valuemax={100}>
               <div
                 className="bg-amber-500 h-full transition-all duration-500 ease-out"
                 style={{ width: `${((stepIndex + 1) / steps.length) * 100}%` }}

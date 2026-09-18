@@ -94,12 +94,17 @@ export const AskTab: React.FC<AskTabProps> = ({ documentId, initialMessages = []
 
   return (
     <div className="flex flex-col h-[calc(100vh-230px)] min-h-[500px]">
+      {/* Screen reader live region for AI responses */}
+      <div className="sr-only" aria-live="polite" aria-atomic="true">
+        {isLoading ? 'Searching document evidence and generating answer...' : messages.length > 0 && messages[messages.length - 1].role === 'assistant' ? `AI Response: ${messages[messages.length - 1].content}` : ''}
+      </div>
+
       {/* Messages Scroll Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div className="flex-1 overflow-y-auto p-4 space-y-4" role="log" aria-label="Document Chat History">
         {messages.length === 0 && (
           <div className="py-8 text-center space-y-4">
             <div className="w-12 h-12 rounded-full bg-amber-100 text-amber-600 mx-auto flex items-center justify-center">
-              <Bot className="w-6 h-6" />
+              <Bot className="w-6 h-6" aria-hidden="true" />
             </div>
             <div>
               <h3 className="font-bold text-slate-900 text-sm">Ask your document questions</h3>
@@ -118,7 +123,8 @@ export const AskTab: React.FC<AskTabProps> = ({ documentId, initialMessages = []
                   <button
                     key={sq}
                     onClick={() => handleSend(sq)}
-                    className="text-xs px-3 py-1.5 rounded-full bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-900 border border-slate-200 transition-colors text-left font-medium"
+                    className="text-xs px-3 py-1.5 rounded-full bg-slate-100 hover:bg-amber-100 text-slate-700 hover:text-amber-900 border border-slate-200 transition-colors text-left font-medium focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    aria-label={`Ask suggested question: ${sq}`}
                   >
                     {sq}
                   </button>
@@ -134,8 +140,8 @@ export const AskTab: React.FC<AskTabProps> = ({ documentId, initialMessages = []
             className={`flex gap-3 text-xs ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             {m.role === 'assistant' && (
-              <div className="w-7 h-7 rounded-full bg-slate-900 text-amber-400 flex items-center justify-center shrink-0 mt-0.5 font-bold">
-                <Bot className="w-4 h-4" />
+              <div className="w-7 h-7 rounded-full bg-slate-900 text-amber-400 flex items-center justify-center shrink-0 mt-0.5 font-bold" aria-label="LegalLens AI Assistant">
+                <Bot className="w-4 h-4" aria-hidden="true" />
               </div>
             )}
 
@@ -168,28 +174,28 @@ export const AskTab: React.FC<AskTabProps> = ({ documentId, initialMessages = []
 
               {/* Legal prep badge if flagged */}
               {m.needsProfessionalReview && (
-                <div className="bg-purple-50 border border-purple-200 text-purple-900 p-2.5 rounded-xl text-[11px] flex items-center gap-1.5">
-                  <ShieldCheck className="w-4 h-4 text-purple-600 shrink-0" />
+                <div className="bg-purple-50 border border-purple-200 text-purple-900 p-2.5 rounded-xl text-[11px] flex items-center gap-1.5" role="note" aria-label="Professional legal review recommendation">
+                  <ShieldCheck className="w-4 h-4 text-purple-600 shrink-0" aria-hidden="true" />
                   <span>Consider reviewing this clause with a legal professional.</span>
                 </div>
               )}
             </div>
 
             {m.role === 'user' && (
-              <div className="w-7 h-7 rounded-full bg-amber-500 text-slate-950 font-bold flex items-center justify-center shrink-0 text-xs mt-0.5">
-                <User className="w-4 h-4" />
+              <div className="w-7 h-7 rounded-full bg-amber-500 text-slate-950 font-bold flex items-center justify-center shrink-0 text-xs mt-0.5" aria-label="You">
+                <User className="w-4 h-4" aria-hidden="true" />
               </div>
             )}
           </div>
         ))}
 
         {isLoading && (
-          <div className="flex gap-3 text-xs justify-start">
+          <div className="flex gap-3 text-xs justify-start" aria-live="polite" aria-busy="true">
             <div className="w-7 h-7 rounded-full bg-slate-900 text-amber-400 flex items-center justify-center shrink-0">
-              <Bot className="w-4 h-4" />
+              <Bot className="w-4 h-4" aria-hidden="true" />
             </div>
             <div className="bg-white border border-slate-200 rounded-2xl rounded-bl-none p-3.5 shadow-sm flex items-center gap-2.5 text-slate-500">
-              <Loader2 className="w-4 h-4 animate-spin text-amber-500" />
+              <Loader2 className="w-4 h-4 animate-spin text-amber-500" aria-hidden="true" />
               <span>Searching document evidence & building response...</span>
             </div>
           </div>
@@ -207,7 +213,9 @@ export const AskTab: React.FC<AskTabProps> = ({ documentId, initialMessages = []
           }}
           className="flex items-center gap-2"
         >
+          <label htmlFor="ask-doc-input" className="sr-only">Ask a question about this document</label>
           <input
+            id="ask-doc-input"
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -217,9 +225,10 @@ export const AskTab: React.FC<AskTabProps> = ({ documentId, initialMessages = []
           <button
             type="submit"
             disabled={!input.trim() || isLoading}
-            className="p-2.5 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-amber-400 rounded-xl transition-colors shrink-0"
+            className="p-2.5 bg-slate-900 hover:bg-slate-800 disabled:opacity-50 text-amber-400 rounded-xl transition-colors shrink-0 focus:outline-none focus:ring-2 focus:ring-amber-500"
+            aria-label="Send question to document AI"
           >
-            <Send className="w-4 h-4" />
+            <Send className="w-4 h-4" aria-hidden="true" />
           </button>
         </form>
       </div>

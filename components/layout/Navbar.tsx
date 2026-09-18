@@ -36,6 +36,16 @@ export const Navbar: React.FC = () => {
       .catch(() => {});
   }, []);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && isJurisdictionModalOpen) {
+        setIsJurisdictionModalOpen(false);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isJurisdictionModalOpen]);
+
   const handleLogout = async () => {
     await fetch('/api/auth/logout', { method: 'POST' });
     setUser(null);
@@ -59,9 +69,9 @@ export const Navbar: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between gap-4">
         {/* Logo */}
         <div className="flex items-center gap-6">
-          <Link href="/" className="flex items-center gap-2.5 group">
+          <Link href="/" className="flex items-center gap-2.5 group" aria-label="LegalLens AI Homepage">
             <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-amber-500 to-amber-300 flex items-center justify-center text-slate-950 font-bold shadow-md shadow-amber-500/20 group-hover:scale-105 transition-transform">
-              <Scale className="w-5 h-5 stroke-[2.5]" />
+              <Scale className="w-5 h-5 stroke-[2.5]" aria-hidden="true" />
             </div>
             <div>
               <span className="font-bold text-lg tracking-tight text-white flex items-center gap-1.5">
@@ -72,7 +82,7 @@ export const Navbar: React.FC = () => {
           </Link>
 
           {/* Navigation */}
-          <nav className="hidden md:flex items-center gap-1 text-sm font-medium text-slate-300">
+          <nav className="hidden md:flex items-center gap-1 text-sm font-medium text-slate-300" aria-label="Main Navigation">
             <Link
               href="/dashboard"
               className={`px-3 py-1.5 rounded-md transition-colors ${pathname === '/dashboard' ? 'bg-slate-800 text-white font-semibold' : 'hover:bg-slate-800/60 hover:text-white'}`}
@@ -83,21 +93,21 @@ export const Navbar: React.FC = () => {
               href="/compare"
               className={`px-3 py-1.5 rounded-md transition-colors flex items-center gap-1.5 ${pathname?.startsWith('/compare') ? 'bg-slate-800 text-white font-semibold' : 'hover:bg-slate-800/60 hover:text-white'}`}
             >
-              <GitCompare className="w-3.5 h-3.5 text-amber-400" />
+              <GitCompare className="w-3.5 h-3.5 text-amber-400" aria-hidden="true" />
               Compare
             </Link>
             <Link
               href="/checklists"
               className={`px-3 py-1.5 rounded-md transition-colors flex items-center gap-1.5 ${pathname === '/checklists' ? 'bg-slate-800 text-white font-semibold' : 'hover:bg-slate-800/60 hover:text-white'}`}
             >
-              <CheckSquare className="w-3.5 h-3.5 text-emerald-400" />
+              <CheckSquare className="w-3.5 h-3.5 text-emerald-400" aria-hidden="true" />
               Checklists
             </Link>
             <Link
               href="/settings"
               className={`px-3 py-1.5 rounded-md transition-colors flex items-center gap-1.5 ${pathname === '/settings' ? 'bg-slate-800 text-white font-semibold' : 'hover:bg-slate-800/60 hover:text-white'}`}
             >
-              <Settings className="w-3.5 h-3.5 text-slate-400" />
+              <Settings className="w-3.5 h-3.5 text-slate-400" aria-hidden="true" />
               Settings
             </Link>
           </nav>
@@ -113,20 +123,22 @@ export const Navbar: React.FC = () => {
                 : 'bg-amber-500/10 text-amber-400 border-amber-500/30'
             }`}
             title={aiMode.mode === 'live' ? 'Live OpenAI Model Active' : 'Offline Heuristic Extraction & Local Demo Active'}
+            aria-label={`AI Mode: ${aiMode.label}`}
           >
-            {aiMode.mode === 'live' ? <Sparkles className="w-3 h-3 text-emerald-400" /> : <Cpu className="w-3 h-3 text-amber-400" />}
+            {aiMode.mode === 'live' ? <Sparkles className="w-3 h-3 text-emerald-400" aria-hidden="true" /> : <Cpu className="w-3 h-3 text-amber-400" aria-hidden="true" />}
             <span>{aiMode.label}</span>
           </div>
 
           {/* Jurisdiction Badge */}
           <button
             onClick={() => setIsJurisdictionModalOpen(true)}
-            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-900 border border-slate-700 text-slate-300 hover:border-slate-500 transition-colors"
+            className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-slate-900 border border-slate-700 text-slate-300 hover:border-slate-500 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-400"
             title="Relevant legal jurisdiction preference"
+            aria-label={`Select jurisdiction, currently ${jurisdiction}`}
           >
-            <Globe className="w-3.5 h-3.5 text-amber-400" />
+            <Globe className="w-3.5 h-3.5 text-amber-400" aria-hidden="true" />
             <span className="max-w-[120px] truncate">{jurisdiction}</span>
-            <ChevronDown className="w-3 h-3 text-slate-400" />
+            <ChevronDown className="w-3 h-3 text-slate-400" aria-hidden="true" />
           </button>
 
           {/* Try Demo Button */}
@@ -137,8 +149,9 @@ export const Navbar: React.FC = () => {
                 ? 'bg-amber-400 text-slate-950 ring-2 ring-amber-400/50'
                 : 'bg-gradient-to-r from-amber-500 to-amber-400 text-slate-950 hover:brightness-110 shadow-sm shadow-amber-500/20'
             }`}
+            aria-label="Try sample interactive legal document demo"
           >
-            <Play className="w-3.5 h-3.5 fill-current" />
+            <Play className="w-3.5 h-3.5 fill-current" aria-hidden="true" />
             <span>Try Demo</span>
           </Link>
 
@@ -149,15 +162,17 @@ export const Navbar: React.FC = () => {
                 href="/dashboard"
                 className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-amber-400 font-semibold text-xs hover:bg-slate-700"
                 title={user.email}
+                aria-label={`User account for ${user.email || user.name}`}
               >
-                {user.name ? user.name.slice(0, 2).toUpperCase() : <User className="w-4 h-4" />}
+                {user.name ? user.name.slice(0, 2).toUpperCase() : <User className="w-4 h-4" aria-hidden="true" />}
               </Link>
               <button
                 onClick={handleLogout}
                 className="p-1.5 rounded-md text-slate-400 hover:text-red-400 hover:bg-slate-800 transition-colors"
                 title="Logout"
+                aria-label="Log out of LegalLens AI"
               >
-                <LogOut className="w-4 h-4" />
+                <LogOut className="w-4 h-4" aria-hidden="true" />
               </button>
             </div>
           ) : (
@@ -178,13 +193,19 @@ export const Navbar: React.FC = () => {
 
       {/* Jurisdiction Selection Modal */}
       {isJurisdictionModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div 
+          className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="jurisdiction-modal-title"
+          aria-describedby="jurisdiction-modal-desc"
+        >
           <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 max-w-md w-full shadow-2xl text-white">
             <div className="flex items-center gap-2 mb-4">
-              <Globe className="w-5 h-5 text-amber-400" />
-              <h3 className="font-semibold text-lg">Relevant Jurisdiction</h3>
+              <Globe className="w-5 h-5 text-amber-400" aria-hidden="true" />
+              <h3 id="jurisdiction-modal-title" className="font-semibold text-lg">Relevant Jurisdiction</h3>
             </div>
-            <p className="text-xs text-slate-400 mb-4">
+            <p id="jurisdiction-modal-desc" className="text-xs text-slate-400 mb-4">
               Select your primary jurisdiction to contextualize document governing laws and legal guidance terms.
             </p>
             <div className="space-y-2 mb-6">
@@ -208,15 +229,17 @@ export const Navbar: React.FC = () => {
                       ? 'bg-amber-400/10 border border-amber-400/40 text-amber-300'
                       : 'bg-slate-800/60 hover:bg-slate-800 text-slate-300 border border-slate-700/50'
                   }`}
+                  aria-label={`Set jurisdiction to ${item}`}
                 >
                   <span>{item}</span>
-                  {jurisdiction === item && <span className="w-2 h-2 rounded-full bg-amber-400" />}
+                  {jurisdiction === item && <span className="w-2 h-2 rounded-full bg-amber-400" aria-hidden="true" />}
                 </button>
               ))}
             </div>
             <button
               onClick={() => setIsJurisdictionModalOpen(false)}
               className="w-full py-2 rounded-lg bg-slate-800 text-xs font-semibold hover:bg-slate-700 text-slate-300"
+              aria-label="Cancel jurisdiction selection modal"
             >
               Cancel
             </button>
