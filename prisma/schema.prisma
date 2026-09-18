@@ -1,0 +1,245 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id           String     @id @default(uuid())
+  email        String     @unique
+  name         String?
+  passwordHash String
+  jurisdiction String?    @default("General / Unspecified")
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  documents    Document[]
+  comparisons  Comparison[]
+}
+
+model Document {
+  id           String            @id @default(uuid())
+  userId       String
+  title        String
+  fileName     String
+  fileType     String            // pdf, docx, txt
+  fileSize     Int
+  storagePath  String?
+  status       String            @default("uploading") // uploading, extracting, analyzing, completed, error
+  errorMessage String?
+  pageCount    Int               @default(1)
+  rawText      String?
+  isDemo       Boolean           @default(false)
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  user         User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  chunks       DocumentChunk[]
+  analysis     DocumentAnalysis?
+  clauses      Clause[]
+  obligations  Obligation[]
+  dates        ImportantDate[]
+  payments     PaymentTerm[]
+  areasToReview AreaToReview[]
+  checklist    ChecklistItem[]
+  lawyerPrep   LawyerPrep?
+  chatMessages ChatMessage[]
+
+  comparisonsAsDocA Comparison[] @relation("DocA")
+  comparisonsAsDocB Comparison[] @relation("DocB")
+}
+
+model DocumentChunk {
+  id          String   @id @default(uuid())
+  documentId  String
+  chunkIndex  Int
+  pageNumber  Int
+  section     String?
+  content     String
+  embedding   String?  // JSON stringified vector array
+  startOffset Int?
+  endOffset   Int?
+  createdAt   DateTime @default(now())
+
+  document    Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+}
+
+model DocumentAnalysis {
+  id            String   @id @default(uuid())
+  documentId    String   @unique
+  documentType  String?  // Contract, NDA, Service Agreement, Lease, Policy, etc.
+  overview      String   // Plain language overview
+  partiesJson   String   // JSON stringified array of parties
+  mainPurpose   String
+  summary       String
+  duration      String?
+  governingLaw  String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  document      Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+}
+
+model Clause {
+  id           String   @id @default(uuid())
+  documentId   String
+  type         String   // Payment, Termination, Renewal, Confidentiality, IP, Liability, etc.
+  title        String
+  summary      String   // Plain English explanation
+  originalText String   // Original excerpt
+  requires     String?  // What it requires/implicates
+  toCheck      String?  // Question or area worth reviewing
+  pageNumber   Int
+  section      String?
+  confidence   Float    @default(0.9)
+  startOffset  Int?
+  endOffset    Int?
+  createdAt    DateTime @default(now())
+
+  document     Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+}
+
+model Obligation {
+  id          String   @id @default(uuid())
+  documentId  String
+  party       String   // "My obligations" or "Other party's obligations" or specific name
+  action      String   // Practical action required
+  deadline    String?
+  frequency   String?
+  conditions  String?
+  pageNumber  Int
+  section     String?
+  status      String   @default("pending")
+  createdAt   DateTime @default(now())
+
+  document    Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+}
+
+model ImportantDate {
+  id            String   @id @default(uuid())
+  documentId    String
+  title         String   // Effective Date, Termination Notice Deadline, etc.
+  dateValue     String   // Formatted date string or relative rule
+  category      String   // effective, expiration, renewal, notice, payment, cure
+  sourceExcerpt String
+  pageNumber    Int
+  section       String?
+  createdAt     DateTime @default(now())
+
+  document      Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+}
+
+model PaymentTerm {
+  id            String   @id @default(uuid())
+  documentId    String
+  title         String
+  amount        String
+  currency      String   @default("USD")
+  frequency     String?
+  dueDate       String?
+  lateFee       String?
+  interest      String?
+  deposits      String?
+  refunds       String?
+  taxes         String?
+  sourceExcerpt String
+  pageNumber    Int
+  section       String?
+  createdAt     DateTime @default(now())
+
+  document      Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+}
+
+model AreaToReview {
+  id                 String   @id @default(uuid())
+  documentId         String
+  category           String   // Potentially Significant, Unclear, Missing Information, Needs Careful Review
+  finding            String
+  whyItMatters       String
+  questionToConsider String
+  sourceExcerpt      String?
+  pageNumber         Int
+  section            String?
+  createdAt          DateTime @default(now())
+
+  document           Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+}
+
+model Comparison {
+  id          String   @id @default(uuid())
+  userId      String
+  docAId      String
+  docBId      String
+  title       String
+  overview    String
+  createdAt   DateTime @default(now())
+
+  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  docA        Document           @relation("DocA", fields: [docAId], references: [id], onDelete: Cascade)
+  docB        Document           @relation("DocB", fields: [docBId], references: [id], onDelete: Cascade)
+  changes     ComparisonChange[]
+}
+
+model ComparisonChange {
+  id           String     @id @default(uuid())
+  comparisonId String
+  category     String     // Added, Removed, Modified, Payment, Deadline, Termination, Obligation, Liability, IP, Restrictions
+  changeType   String     // added, removed, modified
+  oldText      String?
+  newText      String?
+  explanation  String
+  location     String?
+  createdAt    DateTime   @default(now())
+
+  comparison   Comparison @relation(fields: [comparisonId], references: [id], onDelete: Cascade)
+}
+
+model ChecklistItem {
+  id               String   @id @default(uuid())
+  documentId       String
+  action           String
+  deadline         String?
+  responsibleParty String?
+  pageNumber       Int?
+  section          String?
+  completed        Boolean  @default(false)
+  createdAt        DateTime @default(now())
+
+  document         Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+}
+
+model LawyerPrep {
+  id               String   @id @default(uuid())
+  documentId       String   @unique
+  keyFactsJson     String   // JSON array of concise factual summaries
+  provisionsJson   String   // JSON array of relevant document sections
+  questionsJson    String   // JSON array of specific questions to ask a lawyer
+  infoToBringJson  String   // JSON array of documents & records to bring
+  createdAt        DateTime @default(now())
+
+  document         Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+}
+
+model ChatMessage {
+  id                 String   @id @default(uuid())
+  documentId         String
+  role               String   // user or assistant
+  content            String
+  sourcesJson        String?  // JSON array of citations [{page, section, excerpt}]
+  uncertaintiesJson  String?  // JSON array of flags
+  needsReview        Boolean  @default(false)
+  createdAt          DateTime @default(now())
+
+  document           Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  action    String
+  details   String?
+  createdAt DateTime @default(now())
+}
